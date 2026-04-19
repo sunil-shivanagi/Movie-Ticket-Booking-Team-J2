@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Ticket Booking System</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a th:href="@{/}">MovieBook</a>
+        </div>
+        <div class="nav-links">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/movies}" th:if="${session.customerId}">Movies</a>
+
+            <!-- Admin Navigation -->
+            <th:block th:if="${session.adminId != null}">
+                <a th:href="@{/admin}">Admin Dashboard</a>
+                <span class="user-name" th:text="'Admin: ' + ${session.adminName}"></span>
+                <a th:href="@{/admin/logout}" class="btn-logout">Admin Logout</a>
+            </th:block>
+
+            <!-- Customer Navigation -->
+            <th:block th:if="${session.customerId != null && session.adminId == null}">
+                <span class="user-name" th:text="'Hello, ' + ${session.customerName}"></span>
+                <a th:href="@{/logout}" class="btn-logout">Logout</a>
+            </th:block>
+
+            <!-- Guest Navigation -->
+            <th:block th:if="${session.customerId == null && session.adminId == null}">
+                <a th:href="@{/admin/login-page}" class="btn-admin">Admin Login</a>
+            </th:block>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Book Your Movie Tickets Online</h1>
+            <p>Experience the magic of cinema with easy online booking</p>
+            <a th:href="@{/movies}" class="btn-primary">Browse Movies</a>
+        </div>
+    </section>
+
+    <!-- Alert Messages -->
+    <div class="container">
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+        <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+    </div>
+
+    <!-- Featured Movies -->
+    <section class="movies-section" th:if="${movies != null and !movies.empty}">
+        <div class="container">
+            <h2>Now Showing</h2>
+            <div class="movies-grid">
+                <div th:each="movie : ${movies}" class="movie-card">
+                    <div class="movie-poster">
+                        <img th:if="${movie.posterUrl != null and movie.posterUrl != ''}"
+                             th:src="${movie.posterUrl}"
+                             th:alt="${movie.title}"
+                             onerror="this.src='https://via.placeholder.com/300x450?text=No+Image'">
+                        <img th:if="${movie.posterUrl == null or movie.posterUrl == ''}"
+                             src="https://via.placeholder.com/300x450?text=No+Poster"
+                             th:alt="${movie.title}">
+                        <div class="movie-rating" th:if="${movie.rating}">
+                            <span th:text="'★ ' + ${movie.rating}"></span>
+                        </div>
+                    </div>
+                    <div class="movie-info">
+                        <h3 th:text="${movie.title}">Movie Title</h3>
+                        <p class="movie-details">
+                            <span th:text="${movie.genre}">Genre</span> |
+                            <span th:text="${movie.language}">Language</span> |
+                            <span th:text="${movie.durationFormatted}">Duration</span>
+                        </p>
+                        <a th:href="@{/movie/{id}/shows(id=${movie.id})}" class="btn-book">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- No Movies Message -->
+    <section th:if="${movies == null or movies.empty}" class="movies-section">
+        <div class="container" style="text-align: center; padding: 40px;">
+            <p style="font-size: 18px; color: #666;">No movies available at the moment.</p>
+        </div>
+    </section>
+
+    <!-- Login/Register Modal (simplified inline) -->
+    <div th:if="${session.customerId == null}" style="text-align: center; padding: 40px; background: #f9f9f9;">
+        <h2 style="color: #333; margin-bottom: 20px;">Please Login to Continue</h2>
+        <p style="font-size: 16px; color: #666; margin-bottom: 20px;">You need to be logged in to browse and book movies.</p>
+        <a th:href="@{/login-page}" class="btn-primary" style="display: inline-block; padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px;">Go to Login</a>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Movie Ticket Booking System - OOAD Mini Project</p>
+        </div>
+    </footer>
+</body>
+</html>

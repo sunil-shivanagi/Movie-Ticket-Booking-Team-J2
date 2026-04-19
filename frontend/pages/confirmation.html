@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking Confirmed! - Movie Ticket Booking</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a th:href="@{/}">MovieBook</a>
+        </div>
+        <div class="nav-links">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/movies}">Movies</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section class="confirmation-section">
+            <div class="confirmation-header">
+                <div class="success-icon">✓</div>
+                <h1>Booking Confirmed!</h1>
+                <p>Your tickets have been booked successfully</p>
+            </div>
+
+            <div class="ticket-card" th:if="${booking}">
+                <div class="ticket-header">
+                    <h2>E-TICKET</h2>
+                    <p class="booking-id">Booking ID: #<span th:text="${booking.id}">123</span></p>
+                </div>
+
+                <div class="ticket-body">
+                    <div class="movie-title" th:text="${booking.show.movie.title}">Movie Title</div>
+
+                    <div class="ticket-details">
+                        <div class="detail-row">
+                            <span class="label">Date</span>
+                            <span class="value" th:text="${booking.show.formattedDate}">25-03-2024</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Time</span>
+                            <span class="value" th:text="${booking.show.formattedTime}">14:00</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Theatre</span>
+                            <span class="value" th:text="${booking.show.screen.theatre.name}">PVR Cinemas</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Screen</span>
+                            <span class="value" th:text="${booking.show.screen.name}">Screen 1</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Seats</span>
+                            <span class="value seats" th:text="${booking.seatLabels}">A1, A2, A3</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Tickets</span>
+                            <span class="value" th:text="${booking.seatCount}">3</span>
+                        </div>
+                    </div>
+
+                    <div class="ticket-divider"></div>
+
+                    <div class="payment-info" th:if="${payment}">
+                        <div class="detail-row">
+                            <span class="label">Transaction ID</span>
+                            <span class="value" th:text="${payment.transactionId}">TXN123456789</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Payment Method</span>
+                            <span class="value" th:text="${payment.paymentMethodDisplayName}">Credit Card</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">Payment Status</span>
+                            <span class="value status-success" th:text="${payment.status}">SUCCESS</span>
+                        </div>
+                        <div class="detail-row total">
+                            <span class="label">Total Paid</span>
+                            <span class="value" th:text="'Rs. ' + ${#numbers.formatDecimal(payment.amount, 1, 2)}">Rs. 750.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="ticket-footer">
+                    <p>Please show this e-ticket at the theatre entrance</p>
+                    <p class="booking-time">Booked on: <span th:text="${booking.formattedBookingTime}">25-03-2024 10:30</span></p>
+                </div>
+            </div>
+
+            <!-- GRASP Information Expert Note -->
+            <div class="grasp-note">
+                <h4>GRASP: Information Expert Pattern</h4>
+                <p>The booking details above are generated using <code>Booking.getBookingDetails()</code> method.</p>
+                <p>Since the <strong>Booking</strong> class has all the data (customer, show, seats, amount),
+                   it is the <strong>Information Expert</strong> and responsible for providing this information.</p>
+            </div>
+
+            <div class="confirmation-actions">
+                <a th:href="@{/}" class="btn-primary">Book More Tickets</a>
+                <button onclick="window.print()" class="btn-secondary">Print Ticket</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Thank you for booking with MovieBook!</p>
+        </div>
+    </footer>
+</body>
+</html>

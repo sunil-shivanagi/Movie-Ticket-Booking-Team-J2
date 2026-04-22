@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Dashboard - Movie Ticket Booking</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body class="admin-body">
+    <!-- Navigation -->
+    <nav class="navbar admin-navbar">
+        <div class="nav-brand">
+            <a th:href="@{/admin}">MovieBook Admin</a>
+        </div>
+        <div class="nav-links">
+            <a th:href="@{/}">View Site</a>
+            <a th:href="@{/admin/logout}">Logout</a>
+        </div>
+    </nav>
+
+    <div class="admin-container">
+        <!-- Sidebar -->
+        <aside class="admin-sidebar">
+            <ul class="sidebar-menu">
+                <li><a th:href="@{/admin}" class="active">Dashboard</a></li>
+                <li><a th:href="@{/admin/movies}">Movies</a></li>
+                <li><a th:href="@{/admin/shows}">Shows</a></li>
+                <li><a th:href="@{/admin/bookings}">Bookings</a></li>
+                <li class="menu-section">Reports (Pure Fabrication)</li>
+                <li><a th:href="@{/admin/reports/daily}">Daily Report</a></li>
+                <li><a th:href="@{/admin/reports/revenue}">Revenue Report</a></li>
+                <li><a th:href="@{/admin/reports/occupancy}">Occupancy Report</a></li>
+            </ul>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="admin-main">
+            <!-- Alert Messages -->
+            <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+            <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+            <!-- Dashboard Summary (Only on Dashboard page) -->
+            <section th:if="${summary}" class="dashboard-section">
+                <h1>Dashboard</h1>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <h3 th:text="${summary.totalMovies}">0</h3>
+                        <p>Total Movies</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 th:text="${summary.totalShows}">0</h3>
+                        <p>Total Shows</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 th:text="${summary.totalBookings}">0</h3>
+                        <p>Total Bookings</p>
+                    </div>
+                    <div class="stat-card">
+                        <h3 th:text="${summary.todayBookings}">0</h3>
+                        <p>Today's Bookings</p>
+                    </div>
+                    <div class="stat-card highlight">
+                        <h3 th:text="'Rs. ' + ${summary.todayRevenue}">Rs. 0</h3>
+                        <p>Today's Revenue</p>
+                    </div>
+                </div>
+
+                <!-- Recent Bookings on Dashboard -->
+                <section th:if="${recentBookings}" class="management-section" style="margin-top: 40px;">
+                    <h2>Recent Bookings</h2>
+                    <div class="data-table">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Customer</th>
+                                    <th>Movie</th>
+                                    <th>Seats</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th>Time</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr th:each="b : ${recentBookings}">
+                                    <td th:text="${b.id}">1</td>
+                                    <td th:text="${b.customer.name}">John</td>
+                                    <td th:text="${b.show.movie.title}">Movie</td>
+                                    <td th:text="${b.seatLabels}">A1, A2</td>
+                                    <td th:text="'Rs. ' + ${b.totalAmount}">Rs. 500</td>
+                                    <td>
+                                        <span class="status-badge"
+                                              th:classappend="${b.status.name() == 'CONFIRMED' ? 'status-success' : 'status-pending'}"
+                                              th:text="${b.status}">CONFIRMED</span>
+                                    </td>
+                                    <td th:text="${b.formattedBookingTime}">25-03-2024</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </section>
+
+            <!-- Movies Management (Only when viewing Movies) -->
+            <section th:if="${movies != null and shows == null}" class="management-section">
+                <div class="section-header">
+                    <h2>Manage Movies</h2>
+                </div>
+
+                <!-- Add Movie Form -->
+                <form th:action="@{/admin/movies/add}" method="post" class="admin-form">
+                    <h3>Add New Movie</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" name="title" required placeholder="Movie Title">
+                        </div>
+                        <div class="form-group">
+                            <label>Genre</label>
+                            <input type="text" name="genre" required placeholder="Action, Comedy, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label>Language</label>
+                            <input type="text" name="language" required placeholder="English, Hindi, etc.">
+                        </div>
+                        <div class="form-group">
+                            <label>Duration (minutes)</label>
+                            <input type="number" name="duration" required placeholder="120">
+                        </div>
+                        <div class="form-group">
+                            <label>Release Date</label>
+                            <input type="date" name="releaseDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Poster URL</label>
+                            <input type="url" name="posterUrl" placeholder="https://...">
+                        </div>
+                        <div class="form-group full-width">
+                            <label>Description</label>
+                            <textarea name="description" rows="3" placeholder="Movie description..."></textarea>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Add Movie</button>
+                </form>
+
+                <!-- Movies List -->
+                <div class="data-table" style="margin-top: 30px;">
+                    <h3>All Movies</h3>
+                    <div th:if="${movies.empty}" style="padding: 20px; text-align: center; color: #999;">
+                        <p>No movies found. Add a new movie to get started.</p>
+                    </div>
+                    <table th:if="${!movies.empty}">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Title</th>
+                                <th>Genre</th>
+                                <th>Language</th>
+                                <th>Duration</th>
+                                <th>Release Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="m : ${movies}">
+                                <td th:text="${m.id}">1</td>
+                                <td th:text="${m.title}">Movie</td>
+                                <td th:text="${m.genre}">Action</td>
+                                <td th:text="${m.language}">English</td>
+                                <td th:text="${m.durationFormatted}">2h 30m</td>
+                                <td th:text="${m.releaseDate}">2024-01-01</td>
+                                <td>
+                                    <form th:action="@{/admin/movies/{id}/delete(id=${m.id})}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn-danger btn-small" onclick="return confirm('Are you sure?')">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Shows Management (Only when viewing Shows) -->
+            <section th:if="${shows != null}" class="management-section">
+                <div class="section-header">
+                    <h2>Manage Shows</h2>
+                </div>
+
+                <!-- Add Show Form -->
+                <form th:action="@{/admin/shows/schedule}" method="post" class="admin-form">
+                    <h3>Schedule New Show</h3>
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label>Movie</label>
+                            <select name="movieId" required>
+                                <option value="">Select Movie</option>
+                                <option th:each="m : ${movies}" th:value="${m.id}" th:text="${m.title}">Movie</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Screen</label>
+                            <select name="screenId" required>
+                                <option value="">Select Screen</option>
+                                <option value="1">PVR - Screen 1</option>
+                                <option value="2">PVR - Screen 2</option>
+                                <option value="3">PVR - Screen 3</option>
+                                <option value="4">INOX - Audi 1</option>
+                                <option value="5">INOX - Audi 2</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Show Time</label>
+                            <input type="datetime-local" name="showTime" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Price (Rs.)</label>
+                            <input type="number" name="price" required placeholder="250" step="10">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn-primary">Schedule Show</button>
+                </form>
+
+                <!-- Shows List -->
+                <div class="data-table" style="margin-top: 30px;">
+                    <h3>All Shows</h3>
+                    <div th:if="${shows.empty}" style="padding: 20px; text-align: center; color: #999;">
+                        <p>No shows scheduled yet.</p>
+                    </div>
+                    <table th:if="${!shows.empty}">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Movie</th>
+                                <th>Screen</th>
+                                <th>Time</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="s : ${shows}">
+                                <td th:text="${s.id}">1</td>
+                                <td th:text="${s.movie.title}">Movie</td>
+                                <td th:text="${s.screen.name}">Screen 1</td>
+                                <td th:text="${s.formattedTime}">14:00</td>
+                                <td th:text="'Rs. ' + ${s.price}">Rs. 250</td>
+                                <td>
+                                    <form th:action="@{/admin/shows/{id}/cancel(id=${s.id})}" method="post" style="display:inline;">
+                                        <button type="submit" class="btn-danger btn-small" onclick="return confirm('Cancel this show?')">Cancel</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Bookings Management (Only when viewing Bookings) -->
+            <section th:if="${bookings != null}" class="management-section">
+                <div class="section-header">
+                    <h2>Manage Bookings</h2>
+                </div>
+
+                <div class="data-table">
+                    <div th:if="${bookings.empty}" style="padding: 20px; text-align: center; color: #999;">
+                        <p>No bookings found.</p>
+                    </div>
+                    <table th:if="${!bookings.empty}">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Customer</th>
+                                <th>Movie</th>
+                                <th>Seats</th>
+                                <th>Amount</th>
+                                <th>Status</th>
+                                <th>Booking Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="b : ${bookings}">
+                                <td th:text="${b.id}">1</td>
+                                <td th:text="${b.customer.name}">John</td>
+                                <td th:text="${b.show.movie.title}">Movie</td>
+                                <td th:text="${b.seatLabels}">A1, A2</td>
+                                <td th:text="'Rs. ' + ${b.totalAmount}">Rs. 500</td>
+                                <td>
+                                    <span class="status-badge"
+                                          th:classappend="${b.status.name() == 'CONFIRMED' ? 'status-success' : 'status-pending'}"
+                                          th:text="${b.status}">CONFIRMED</span>
+                                </td>
+                                <td th:text="${b.formattedBookingTime}">25-03-2024</td>
+                                <td>
+                                    <a th:href="@{/admin/bookings/{id}(id=${b.id})}" class="btn-primary btn-small">View</a>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Daily Report (Only when viewing Daily Report) -->
+            <section th:if="${report}" class="report-section">
+                <h2>Daily Booking Report</h2>
+                <div th:if="${report.reportTitle}" class="report-card">
+                    <h3 th:text="${report.reportTitle}">Report Title</h3>
+                    <p>Date: <span th:text="${report.reportDate}">2024-03-25</span></p>
+                    <div class="report-stats">
+                        <div class="report-stat">
+                            <span class="stat-value" th:text="${report.totalBookings}">0</span>
+                            <span class="stat-label">Total Bookings</span>
+                        </div>
+                        <div class="report-stat">
+                            <span class="stat-value" th:text="${report.totalTicketsSold}">0</span>
+                            <span class="stat-label">Tickets Sold</span>
+                        </div>
+                        <div class="report-stat">
+                            <span class="stat-value" th:text="'Rs. ' + ${report.totalRevenue}">Rs. 0</span>
+                            <span class="stat-label">Total Revenue</span>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="!${report.reportTitle}" style="padding: 20px; text-align: center; color: #999;">
+                    <p>No data available for this date.</p>
+                </div>
+            </section>
+
+            <!-- Revenue Report (Only when viewing Revenue Report) -->
+            <section th:if="${revenueReport}" class="report-section">
+                <h2>Movie-wise Revenue Report</h2>
+                <div class="data-table">
+                    <div th:if="${revenueReport.empty}" style="padding: 20px; text-align: center; color: #999;">
+                        <p>No revenue data available.</p>
+                    </div>
+                    <table th:if="${!revenueReport.empty}">
+                        <thead>
+                            <tr>
+                                <th>Movie</th>
+                                <th>Total Bookings</th>
+                                <th>Total Revenue</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="r : ${revenueReport}">
+                                <td th:text="${r.movieTitle}">Movie</td>
+                                <td th:text="${r.totalBookings}">0</td>
+                                <td th:text="'Rs. ' + ${r.totalRevenue}">Rs. 0</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </section>
+
+            <!-- Occupancy Report (Only when viewing Occupancy Report) -->
+            <section th:if="${occupancyReport}" class="report-section">
+                <h2>Occupancy Report</h2>
+                <div th:if="${occupancyReport.reportTitle}" class="report-card">
+                    <h3 th:text="${occupancyReport.reportTitle}">Report Title</h3>
+                    <p>Date: <span th:text="${occupancyReport.reportDate}">2024-03-25</span></p>
+                    <div class="report-stats">
+                        <div class="report-stat">
+                            <span class="stat-value" th:text="${occupancyReport.totalShows}">0</span>
+                            <span class="stat-label">Total Shows</span>
+                        </div>
+                        <div class="report-stat">
+                            <span class="stat-value" th:text="${occupancyReport.totalSeatsAvailable}">0</span>
+                            <span class="stat-label">Seats Available</span>
+                        </div>
+                        <div class="report-stat">
+                            <span class="stat-value" th:text="${occupancyReport.totalSeatsBooked}">0</span>
+                            <span class="stat-label">Seats Booked</span>
+                        </div>
+                        <div class="report-stat">
+                            <span class="stat-value" th:text="${occupancyReport.occupancyRate}">0%</span>
+                            <span class="stat-label">Occupancy Rate</span>
+                        </div>
+                    </div>
+                </div>
+                <div th:if="!${occupancyReport.reportTitle}" style="padding: 20px; text-align: center; color: #999;">
+                    <p>No occupancy data available for this date.</p>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer admin-footer">
+        <p>Movie Ticket Booking System - Admin Panel | OOAD Mini Project</p>
+    </footer>
+</body>
+</html>

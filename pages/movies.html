@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movies - Movie Ticket Booking</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-brand">
+            <a th:href="@{/}">MovieBook</a>
+        </div>
+        <div class="nav-links">
+            <a th:href="@{/}">Home</a>
+            <a th:href="@{/movies}" class="active">Movies</a>
+            <a th:href="@{/admin}">Admin</a>
+            <span th:if="${session.customerName}" class="user-name" th:text="'Hello, ' + ${session.customerName}"></span>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- Filters -->
+        <section class="filters-section">
+            <h2>Browse Movies</h2>
+            <form th:action="@{/movies}" method="get" class="filters-form">
+                <div class="filter-group">
+                    <label>Search</label>
+                    <input type="text" name="search" th:value="${searchQuery}" placeholder="Search movies...">
+                </div>
+                <div class="filter-group">
+                    <label>Genre</label>
+                    <select name="genre">
+                        <option value="">All Genres</option>
+                        <option th:each="g : ${genres}" th:value="${g}" th:text="${g}"
+                                th:selected="${g == selectedGenre}"></option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label>Language</label>
+                    <select name="language">
+                        <option value="">All Languages</option>
+                        <option th:each="l : ${languages}" th:value="${l}" th:text="${l}"
+                                th:selected="${l == selectedLanguage}"></option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary">Filter</button>
+            </form>
+        </section>
+
+        <!-- Alert Messages -->
+        <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+
+        <!-- Movie Details (if viewing specific movie with shows) -->
+        <section th:if="${movie}" class="movie-detail-section">
+            <div class="movie-detail">
+                <div class="movie-detail-poster">
+                    <img th:src="${movie.posterUrl != null ? movie.posterUrl : 'https://via.placeholder.com/300x450'}"
+                         th:alt="${movie.title}">
+                </div>
+                <div class="movie-detail-info">
+                    <h1 th:text="${movie.title}">Movie Title</h1>
+                    <div class="movie-meta">
+                        <span class="badge" th:text="${movie.genre}">Genre</span>
+                        <span class="badge" th:text="${movie.language}">Language</span>
+                        <span class="badge" th:text="${movie.durationFormatted}">Duration</span>
+                        <span class="badge rating" th:if="${movie.rating}" th:text="'★ ' + ${movie.rating}">Rating</span>
+                    </div>
+                    <p th:text="${movie.description}">Movie description goes here...</p>
+
+                    <!-- Available Shows -->
+                    <div class="shows-section" th:if="${shows != null and !shows.empty}">
+                        <h3>Available Shows</h3>
+                        <div class="shows-grid">
+                            <div th:each="show : ${shows}" class="show-card">
+                                <div class="show-info">
+                                    <p class="show-date" th:text="${show.formattedDate}">Date</p>
+                                    <p class="show-time" th:text="${show.formattedTime}">Time</p>
+                                    <p class="show-venue" th:text="${show.screen.theatre.name + ' - ' + show.screen.name}">Venue</p>
+                                    <p class="show-price" th:text="'Rs. ' + ${show.price}">Price</p>
+                                </div>
+                                <a th:href="@{/show/{id}/seats(id=${show.id})}" class="btn-book">Select Seats</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div th:if="${shows == null or shows.empty}" class="no-shows">
+                        <p>No shows available for this movie at the moment.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Movies Grid -->
+        <section th:unless="${movie}" class="movies-section">
+            <div class="movies-grid">
+                <div th:if="${movies == null or movies.empty}" class="no-movies">
+                    <p>No movies found.</p>
+                </div>
+                <div th:each="m : ${movies}" class="movie-card">
+                    <div class="movie-poster">
+                        <img th:src="${m.posterUrl != null ? m.posterUrl : 'https://via.placeholder.com/300x450?text=No+Poster'}"
+                             th:alt="${m.title}"
+                             onerror="this.src='https://via.placeholder.com/300x450?text=No+Poster'">
+                        <div class="movie-rating" th:if="${m.rating}">
+                            <span th:text="${m.rating}"></span>
+                        </div>
+                    </div>
+                    <div class="movie-info">
+                        <h3 th:text="${m.title}">Movie Title</h3>
+                        <p class="movie-details">
+                            <span th:text="${m.genre}">Genre</span> |
+                            <span th:text="${m.language}">Language</span> |
+                            <span th:text="${m.durationFormatted}">Duration</span>
+                        </p>
+                        <a th:href="@{/movie/{id}/shows(id=${m.id})}" class="btn-book">Book Now</a>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <p>Movie Ticket Booking System - OOAD Mini Project</p>
+        </div>
+    </footer>
+</body>
+</html>

@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Movie Ticket Booking - Login/Register</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1635 50%, #0a0e27 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(ellipse at top, rgba(233, 69, 96, 0.1), transparent);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .login-container {
+            width: 100%;
+            max-width: 1100px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .login-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            background: rgba(15, 15, 31, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 30px 80px rgba(0, 0, 0, 0.8), 0 0 40px rgba(233, 69, 96, 0.2);
+            overflow: hidden;
+            border: 1px solid rgba(233, 69, 96, 0.2);
+        }
+
+        .login-info {
+            background: linear-gradient(135deg, rgba(22, 33, 62, 0.9) 0%, rgba(233, 69, 96, 0.1) 100%);
+            color: white;
+            padding: 80px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            border-right: 1px solid rgba(233, 69, 96, 0.1);
+            position: relative;
+        }
+
+        .login-info::before {
+            content: "🎬";
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 40px;
+            opacity: 0.3;
+        }
+
+        .login-info h1 {
+            font-size: 52px;
+            margin-bottom: 15px;
+            text-shadow: 0 4px 20px rgba(233, 69, 96, 0.4);
+            font-weight: 800;
+            letter-spacing: 2px;
+            background: linear-gradient(135deg, #e94560 0%, #ff7f8f 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .login-info p {
+            font-size: 16px;
+            line-height: 1.8;
+            margin-bottom: 40px;
+            opacity: 0.85;
+            letter-spacing: 0.5px;
+        }
+
+        .app-features {
+            list-style: none;
+            text-align: left;
+            display: inline-block;
+        }
+
+        .app-features li {
+            margin: 14px 0;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            opacity: 0.9;
+        }
+
+        .app-features li:before {
+            content: "▶";
+            margin-right: 12px;
+            font-weight: bold;
+            font-size: 12px;
+            color: #e94560;
+        }
+
+        .login-forms {
+            padding: 80px 50px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            background: rgba(15, 15, 31, 0.5);
+        }
+
+        .form-tabs {
+            display: flex;
+            margin-bottom: 40px;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px;
+            border-radius: 12px;
+        }
+
+        .form-tab {
+            flex: 1;
+            padding: 14px;
+            background: transparent;
+            border: 2px solid transparent;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 600;
+            transition: all 0.3s;
+            color: #999;
+        }
+
+        .form-tab:hover {
+            color: #fff;
+            border-color: rgba(233, 69, 96, 0.3);
+        }
+
+        .form-tab.active {
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.9) 0%, rgba(118, 75, 162, 0.7) 100%);
+            color: white;
+            border-color: #e94560;
+            box-shadow: 0 0 20px rgba(233, 69, 96, 0.3);
+        }
+
+        .form-section {
+            display: none;
+        }
+
+        .form-section.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .form-group {
+            margin-bottom: 22px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #ccc;
+            font-weight: 600;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 13px 16px;
+            border: 2px solid rgba(233, 69, 96, 0.2);
+            border-radius: 8px;
+            font-size: 15px;
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+            transition: all 0.3s;
+        }
+
+        .form-group input::placeholder {
+            color: rgba(255, 255, 255, 0.4);
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #e94560;
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: 0 0 15px rgba(233, 69, 96, 0.2);
+        }
+
+        button[type="submit"] {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #e94560 0%, #c9294c 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-top: 10px;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(233, 69, 96, 0.3);
+        }
+
+        button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(233, 69, 96, 0.4);
+        }
+
+        button[type="submit"]:active {
+            transform: translateY(0);
+        }
+
+        .alert {
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            font-size: 14px;
+            border-left: 4px solid;
+        }
+
+        .alert-error {
+            background: rgba(220, 38, 38, 0.15);
+            color: #fca5a5;
+            border-left-color: #dc2626;
+        }
+
+        .alert-success {
+            background: rgba(34, 197, 94, 0.15);
+            color: #86efac;
+            border-left-color: #22c55e;
+        }
+
+        .admin-badge {
+            display: inline-block;
+            background: linear-gradient(135deg, #e94560 0%, #ff7f8f 100%);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 8px;
+            letter-spacing: 0.5px;
+        }
+
+        .form-footer {
+            margin-top: 25px;
+            text-align: center;
+            color: #999;
+            font-size: 14px;
+        }
+
+        .form-footer a {
+            color: #e94560;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .form-footer a:hover {
+            color: #ff7f8f;
+            text-decoration: underline;
+        }
+
+        @media (max-width: 768px) {
+            .login-wrapper {
+                grid-template-columns: 1fr;
+            }
+
+            .login-info {
+                padding: 60px 40px;
+                border-right: none;
+                border-bottom: 1px solid rgba(233, 69, 96, 0.1);
+            }
+
+            .login-forms {
+                padding: 60px 40px;
+            }
+
+            .login-info h1 {
+                font-size: 40px;
+            }
+
+            .login-info p {
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <div class="login-wrapper">
+            <!-- Left Side - Info -->
+            <div class="login-info">
+                <h1>🎬 MovieBook</h1>
+                <p>Your Ultimate Movie Ticket Booking Experience</p>
+
+                <ul class="app-features">
+                    <li>Browse Latest Movies</li>
+                    <li>Select Your Seats</li>
+                    <li>Quick Booking</li>
+                    <li>Secure Payment</li>
+                    <li>Instant Confirmation</li>
+                </ul>
+            </div>
+
+            <!-- Right Side - Forms -->
+            <div class="login-forms">
+                <!-- Display Messages -->
+                <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
+                <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+
+                <!-- Form Tabs -->
+                <div class="form-tabs">
+                    <button type="button" class="form-tab active" onclick="switchTab('customer')">
+                        👤 Customer Login
+                    </button>
+                    <button type="button" class="form-tab" onclick="switchTab('admin')">
+                        🔐 Admin Login <span class="admin-badge">DEVELOPER</span>
+                    </button>
+                </div>
+
+                <!-- Customer Login Form -->
+                <form id="customer" class="form-section active" th:action="@{/login}" method="post">
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="Enter your password" required>
+                    </div>
+
+                    <button type="submit">Login</button>
+
+                    <div class="form-footer">
+                        <p>New to MovieBook?
+                            <a href="#" onclick="switchTab('register')">Register here</a>
+                        </p>
+                    </div>
+                </form>
+
+                <!-- Customer Register Form -->
+                <form id="register" class="form-section" th:action="@{/register}" method="post">
+                    <div class="form-group">
+                        <label>Full Name</label>
+                        <input type="text" name="name" placeholder="Enter your name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email Address</label>
+                        <input type="email" name="email" placeholder="Enter your email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="Create a password" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Number (Optional)</label>
+                        <input type="tel" name="phone" placeholder="Enter your phone">
+                    </div>
+
+                    <button type="submit">Create Account</button>
+
+                    <div class="form-footer">
+                        <p>Already have an account?
+                            <a href="#" onclick="switchTab('customer')">Login here</a>
+                        </p>
+                    </div>
+                </form>
+
+                <!-- Admin Login Form -->
+                <form id="admin" class="form-section" th:action="@{/admin/login}" method="post">
+                    <div class="form-group">
+                        <label>Admin Email</label>
+                        <input type="email" name="email" placeholder="Enter admin email" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" name="password" placeholder="Enter password" required>
+                    </div>
+
+                    <button type="submit">Admin Login</button>
+
+                    <div class="form-footer">
+                        <p>Developer credentials provided separately</p>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tab) {
+            // Hide all forms
+            document.querySelectorAll('.form-section').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Remove active from all tabs
+            document.querySelectorAll('.form-tab').forEach(el => {
+                el.classList.remove('active');
+            });
+
+            // Show selected form
+            document.getElementById(tab).classList.add('active');
+
+            // Mark corresponding tab as active
+            if (tab === 'customer') {
+                document.querySelectorAll('.form-tab')[0].classList.add('active');
+            } else if (tab === 'register') {
+                document.getElementById('register').classList.add('active');
+                document.querySelectorAll('.form-tab')[0].classList.add('active');
+            } else if (tab === 'admin') {
+                document.getElementById('admin').classList.add('active');
+                document.querySelectorAll('.form-tab')[1].classList.add('active');
+            }
+        }
+    </script>
+</body>
+</html>
